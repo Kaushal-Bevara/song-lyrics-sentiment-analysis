@@ -7,3 +7,5 @@
 > pip install -r requirements.txt
 > python main.py
 ```
+
+NOTE: May Also need to download [nltk data]{https://www.nltk.org/install.html#installing-nltk-data} locally.
