@@ -1,20 +1,18 @@
 import requests
+from re import sub as reSub, split as reSplit
+from nltk.corpus import stopwords
+from nltk.sentiment import SentimentIntensityAnalyzer
 from bs4 import BeautifulSoup
 
 def generateGeniusUrl(artist, songName):
-    url = ""
-    for c in artist:
-        if c.isalnum():
-            url += c
-        if c == " ":
-            url += "-"
-    url += "-"
-    for c in songName:
-        if c.isalnum():
-            url += c
-        if c == " ":
-            url += "-"
-    url = "https://genius.com/" + url + "-lyrics"
+    artist = reSub(r'[^a-zA-Z0-9\s]', '', artist)
+    artist = artist.replace(' ', '-')
+    
+    
+
+    songName = reSub(r'[^a-zA-Z0-9\s]', '', songName)
+    songName = songName.replace(' ', '-')
+    url = "https://genius.com/" + artist + "-" + songName + "-lyrics"
     return url
 
 def extractLyrics(doc):
@@ -34,8 +32,25 @@ def extractLyrics(doc):
     # the lyrics officialy start at the brackets on the website
     lyrics = lyrics[lyrics.find("["):]
     return lyrics
-
     
+
+def displayStanzaSentiments(lyrics):
+    # filters out the brackets which denote Intro, outro etc
+    stanzas = reSplit(r'\[.*?\]', lyrics)[1:]
+    for stanza in stanzas:
+        
+        words = stanza.split(" ")
+        analyzer = SentimentIntensityAnalyzer()
+        english_stop_words = stopwords.words()
+        filtered_words = ""
+        for word in words:
+            if word not in english_stop_words:
+                filtered_words += word + " "
+        print(stanza + "\n")
+        # prints out compound polarity score
+        print("Polarity Score (Compound): " + str(analyzer.polarity_scores(filtered_words)['compound']))
+
+
 def main():
     artistInput = input("Input Artist Stage Name Exactly: ")
     songInput = input("Input Song Name Exactly: ")
@@ -48,7 +63,7 @@ def main():
         print("Either the song isn't available on genius.com or there is a typo")
         return
     lyrics = extractLyrics(r.text)
-    print(lyrics)
+    displayStanzaSentiments(lyrics)
 
 if __name__ == "__main__":
     main()
